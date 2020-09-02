@@ -48,7 +48,7 @@ public object Parser {
 			print("Building AST for \"" + filename + "\"...");
 		}
 
-		var scanner = new Scanner(new System.IO.File(filename, System.IO.FileAccessMode.ReadOnly), LINEBREAK);
+		var scanner = new Scanner(new System.IO.File(filename), LINEBREAK);
 
 		// reset members
 		mCurrentLine = 0;
