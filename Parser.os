@@ -11,14 +11,14 @@ import Scanner;
 
 
 public object ParseException const implements IException {
-	public void Constructor(string msg, int line = 0, int column = 0) {
+	public void Constructor( string msg, int line = 0, int column = 0 ) {
 		mColumn = column;
 		mLine = line;
 		mMessage = msg;
 	}
 
 	public string what() const {
-		return mMessage + mLine ? (" at Line " + mLine + ", " + mColumn) : "";
+		return mMessage + mLine ? ( " at Line " + mLine + ", " + mColumn ) : "";
 	}
 
 	private int mColumn const;
@@ -28,27 +28,27 @@ public object ParseException const implements IException {
 
 public object Parser {
 	public void Constructor() {
-		CHARS = new String("ABCDEFGHIJKLMNOPRSTUVWXYZabcdefghijklmnoprstuvwxyz");
-		COMPARECHARS = new String("<>=");
+		CHARS = new String( "ABCDEFGHIJKLMNOPRSTUVWXYZabcdefghijklmnoprstuvwxyz" );
+		COMPARECHARS = new String( "<>=" );
 		FUNCTIONS = new Set<string>();
-		NUMBERS = new String("0123456789");
-		OPERATORCHARS = new String("+-*/%");
-		WHITESPACES = new String(" ");
+		NUMBERS = new String( "0123456789" );
+		OPERATORCHARS = new String( "+-*/%" );
+		WHITESPACES = new String( " " );
 
-		DELIMITERCHARS = new String( cast<string>(COMPARECHARS) + cast<string>(OPERATORCHARS) + cast<string>(WHITESPACES) + ",()" );
-		FUNCTIONS.insert("ABS");
-		FUNCTIONS.insert("POW");
-		FUNCTIONS.insert("SQR");
+		DELIMITERCHARS = new String(  cast<string>( COMPARECHARS ) + cast<string>( OPERATORCHARS ) + cast<string>( WHITESPACES ) + ",()"  );
+		FUNCTIONS.insert( "ABS" );
+		FUNCTIONS.insert( "POW" );
+		FUNCTIONS.insert( "SQR" );
 
 		mVariables = new Set<string>();
 	}
 
-	public Map<int, Line> parseFile(string filename, bool debug = false) modify {
-		if ( debug ) {
-			print("Building AST for \"" + filename + "\"...");
+	public Map<int, Line> parseFile( string filename, bool debug = false ) modify {
+		if (  debug  ) {
+			print( "Building AST for \"" + filename + "\"..." );
 		}
 
-		var scanner = new Scanner(new System.IO.File(filename), LINEBREAK);
+		var scanner = new Scanner( new System.IO.File( filename, System.IO.File.AccessMode.ReadOnly ), LINEBREAK );
 
 		// reset members
 		mCurrentLine = 0;
@@ -58,19 +58,19 @@ public object Parser {
 		Map<int, Line> lines = new Map<int, Line>();
 		Line previousLine;
 
-		while ( it.hasNext() ) {
+		while (  it.hasNext()  ) {
 			// only parse non-empty lines
-			if ( it.next() ) {
-				Line line = parseLine(it.current());
-				if ( !line ) {
-					// ignore invalid lines (mostly shebangs ;-)
+			if (  it.next()  ) {
+				var line = parseLine( it.current() );
+				if (  !line  ) {
+					// ignore invalid lines ( mostly shebangs ;- )
 					continue;
 				}
 
-				lines.insert(line.mLineNumber, line);
+				lines.insert( line.mLineNumber, line );
 
-				if ( previousLine ) {
-					previousLine.nextLine(line.mLineNumber);
+				if (  previousLine  ) {
+					previousLine.nextLine( line.mLineNumber );
 				}
 
 				previousLine = line;
@@ -82,112 +82,112 @@ public object Parser {
 		return lines;
 	}
 
-	public Line parseLine(string content) modify throws {
-		if ( strpos(content, 0) == "#" ) {
+	public Line parseLine( string content ) modify throws {
+		if (  strpos( content, 0 ) == "#"  ) {
 			return Line null;
 		}
 
 		// parse line number
 		// {
-		int idx = strfind(content, " ", 0);
-		if ( !idx ) {
-			throw new ParseException("invalid or missing line number: \"" + content + "\"");
+		var idx = strfind( content, " ", 0 );
+		if (  !idx  ) {
+			throw new ParseException( "invalid or missing line number: \"" + content + "\"" );
 		}
 
-		string lineLabel = substr(content, 0, idx);
-		if ( !isNumber(lineLabel) ) {
-			throw new ParseException("invalid label \"" + lineLabel + "\"!");
+		var lineLabel = substr( content, 0, idx );
+		if (  !isNumber( lineLabel )  ) {
+			throw new ParseException( "invalid label \"" + lineLabel + "\"!" );
 		}
 		// }
 
-		mCurrentLine = int lineLabel;
+		mCurrentLine = cast<int>(  lineLabel  );
 
 		// parse statement
 		// {
-		CharacterIterator ci = new CharacterIterator(substr(content, idx + 1, strlen(content)));
+		var ci = new CharacterIterator( substr( content, idx + 1, strlen( content ) ) );
 
-		Statement statement = parseStatement(ci);
-		if ( !statement ) {
-			throw new ParseException("invalid keyword in line \"" + content + "\"");
+		var statement = parseStatement( ci );
+		if (  !statement  ) {
+			throw new ParseException( "invalid keyword in line \"" + content + "\"" );
 		}
 
-		skipWhitespaces(ci);
+		skipWhitespaces( ci );
 
-		Statement followingStatement = statement;
-		if ( ci.hasNext() && ci.current() == ":" && bool followingStatement ) {
+		var followingStatement = statement;
+		if (  ci.hasNext() && ci.current() == ":" && bool followingStatement  ) {
 			ci.next();
 
-			Statement stmt = parseStatement(ci);
+			var stmt = parseStatement( ci );
 			followingStatement.mFollowingStatement = Statement stmt;
 			//followingStatement = Statement stmt;
 		}
 		// }
 
-		return new Line(int lineLabel, statement);
+		return new Line( int lineLabel, statement );
 	}
 
-	public Statement parseStatement(CharacterIterator ci) modify throws {
+	public Statement parseStatement( CharacterIterator ci ) modify throws {
 		Statement result;
 
-		switch ( parseWord(ci) ) {
+		switch (  parseWord( ci )  ) {
 			case "DIM": {
-				result = parseDIM(ci);
-				//print(result.toString());
+				result = parseDIM( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "END": {
-				result = parseEND(ci);
-				//print(result.toString());
+				result = parseEND( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "FOR": {
-				result = parseFOR(ci);
-				//print(result.toString());
+				result = parseFOR( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "GOSUB": {
-				result = parseGOSUB(ci);
-				//print(result.toString());
+				result = parseGOSUB( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "GOTO": {
-				result = parseGOTO(ci);
-				//print(result.toString());
+				result = parseGOTO( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "IF": {
-				result = parseIF(ci);
-				//print(result.toString());
+				result = parseIF( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "INPUT": {
-				result = parseINPUT(ci);
-				//print(result.toString());
+				result = parseINPUT( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "LET": {
-				result = parseLET(ci);
-				//print(result.toString());
+				result = parseLET( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "NEXT": {
-				result = parseNEXT(ci);
-				//print(result.toString());
+				result = parseNEXT( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "PRINT": {
-				result = parsePRINT(ci);
-				//print(result.toString());
+				result = parsePRINT( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "REM": {
-				result = parseREM(ci);
-				//print(result.toString());
+				result = parseREM( ci );
+				//print( result.toString() );
 				break;
 			}
 			case "RETURN": {
-				result = parseRETURN(ci);
-				//print(result.toString());
+				result = parseRETURN( ci );
+				//print( result.toString() );
 				break;
 			}
 		}
@@ -195,188 +195,193 @@ public object Parser {
 		return result;
 	}
 
-	private Statement parseDIM(CharacterIterator ci) modify throws {
-		if ( !ci.hasNext() ) {
-			throw new ParseException("incomplete DIM!", mCurrentLine);
+	private Statement parseDIM( CharacterIterator ci ) modify throws {
+		if (  !ci.hasNext()  ) {
+			throw new ParseException( "incomplete DIM!", mCurrentLine );
 		}
 
-		string variable = parseWord(ci);
+		string variable = parseWord( ci );
 
-		if ( mVariables.contains(variable) ) {
-			throw new ParseException("Duplicate variable '" + variable + "' declared!", mCurrentLine);
+		if (  mVariables.contains( variable )  ) {
+			throw new ParseException( "Duplicate variable '" + variable + "' declared!", mCurrentLine );
 		}
-		mVariables.insert(variable);
+		mVariables.insert( variable );
 
-		skipWhitespaces(ci);
+		skipWhitespaces( ci );
 
 		Expression exp;
-		if ( ci.current() == "=" ) {
+		if (  ci.current() == "="  ) {
 			ci.next();
 
-			exp = expression(ci);
+			exp = expression( ci );
 		}
 
-		return Statement new DimStatement(variable, exp);
+		return Statement new DimStatement( variable, exp );
 	}
 
-	private Statement parseEND(CharacterIterator ci) throws {
+	private Statement parseEND( CharacterIterator ci ) throws {
 		return Statement new EndStatement();
 	}
 
-	private Statement parseFOR(CharacterIterator ci) modify throws {
-		if ( !ci.hasNext() ) {
-			throw new ParseException("incomplete FOR!", mCurrentLine);
+	private Statement parseFOR( CharacterIterator ci ) modify throws {
+		if (  !ci.hasNext()  ) {
+			throw new ParseException( "incomplete FOR!", mCurrentLine );
 		}
 
-		string variable = parseWord(ci);
+		string variable = parseWord( ci );
 
-		if ( !mVariables.contains(variable) ) {
-			mVariables.insert(variable);
+		if (  !mVariables.contains( variable )  ) {
+			mVariables.insert( variable );
 		}
 
-		var varExp = new VariableExpression(variable);
+		var varExp = new VariableExpression( variable );
 
-		skipWhitespaces(ci);
+		skipWhitespaces( ci );
 
-		if ( ci.current() != "=" ) {
+		if (  ci.current() != "="  ) {
 			throw "'=' expected!";
 		}
 		ci++;
 
-		Expression initExp = expression(ci);
+		Expression initExp = expression( ci );
 
 		string word;
-		while ( ci.hasNext() && isCharacter(ci.current()) ) {
+		while (  ci.hasNext() && isCharacter( ci.current() )  ) {
 			word += ci.current();
 
 			ci.next();
 		}
 
-		if ( word != "TO" ) {
+		if (  word != "TO"  ) {
 			throw "'TO' expected but '" + word + "' found!";
 		}
 
-		Expression toExp = expression(ci); 
+		Expression toExp = expression( ci ); 
 
 		Expression stepExp;
-		if ( ci.hasNext() ) {
+		if (  ci.hasNext()  ) {
 			word = "";
 
-			while ( ci.hasNext() && isCharacter(ci.current()) ) {
+			while (  ci.hasNext() && isCharacter( ci.current() )  ) {
 				word += ci.current();
 
 				ci.next();
 			}
 
-			if ( word != "STEP" ) {
+			if (  word != "STEP"  ) {
 				throw "'STEP' expected but '" + word + "' found!";
 			}
 
-			stepExp = expression(ci);
+			stepExp = expression( ci );
 		}
 		else {
-			stepExp = Expression new ConstNumberExpression(1.f);
+			stepExp = Expression new ConstNumberExpression( 1.f );
 		}
 
-		return Statement new ForStatement(varExp,
+		return Statement new ForStatement( varExp,
 						  initExp,
-						  Expression new BinaryExpression(Expression varExp, "<", toExp),
-						  Expression new BinaryExpression(Expression varExp, "+", stepExp));
+						  Expression new BinaryExpression( Expression varExp, "<", toExp ),
+						  Expression new BinaryExpression( Expression varExp, "+", stepExp ) );
 	}
 
-	private Statement parseGOSUB(CharacterIterator ci) throws {
-		if ( !ci.hasNext() ) {
-			throw new ParseException("incomplete GOSUB!", mCurrentLine);
+	private Statement parseGOSUB( CharacterIterator ci ) throws {
+		if (  !ci.hasNext()  ) {
+			throw new ParseException( "incomplete GOSUB!", mCurrentLine );
 		}
 
-		return Statement new GoSubStatement(int parseWord(ci));
+		return Statement new GoSubStatement( int parseWord( ci ) );
 	}
 
-	private Statement parseGOTO(CharacterIterator ci) throws {
-		if ( !ci.hasNext() ) {
-			throw new ParseException("incomplete GOTO!", mCurrentLine);
+	private Statement parseGOTO(  CharacterIterator ci  ) throws {
+		if (  !ci.hasNext()  ) {
+			throw new ParseException(  "incomplete GOTO!", mCurrentLine  );
 		}
 
-		return Statement new GotoStatement(int parseWord(ci));
+		var label = parseWord(  ci  );
+		if (  isNumber(  label  )  ) {
+			return Statement new GotoStatement(  cast<int>(  label  )  );
+		}
+
+		return Statement new GotoStatement(  label  );
 	}
 
-	private Statement parseIF(CharacterIterator ci) modify throws {
-		if ( !ci.hasNext() ) {
-			throw new ParseException("incomplete IF!", mCurrentLine);
+	private Statement parseIF(  CharacterIterator ci  ) modify throws {
+		if (  !ci.hasNext()  ) {
+			throw new ParseException(  "incomplete IF!", mCurrentLine  );
 		}
 
-		Expression exp = expression(ci);
+		var exp = expression(  ci  );
 
 		string then;
-		while ( ci.hasNext() && isCharacter(ci.current()) ) {
+		while (  ci.hasNext() && isCharacter(  ci.current()  )  ) {
 			then += ci.current();
 
 			ci.next();
 		}
 
-		if ( then != "THEN" ) {
+		if (  then != "THEN"  ) {
 			throw "'THEN' expected but '" + then + "' found!";
 		}
 
-		return Statement new IfStatement(exp, parseStatement(ci));
+		return Statement new IfStatement(  exp, parseStatement(  ci  )  );
 	}
 
-	private Statement parseINPUT(CharacterIterator ci) throws {
-		if ( !ci.hasNext() ) {
-			throw new ParseException("incomplete INPUT!", mCurrentLine);
+	private Statement parseINPUT(  CharacterIterator ci  ) throws {
+		if (  !ci.hasNext()  ) {
+			throw new ParseException(  "incomplete INPUT!", mCurrentLine  );
 		}
 
 		string text;
-		if ( ci.peek() == "\"" ) {
-			text = parseWord(ci);
+		if (  ci.peek() == "\""  ) {
+			text = parseWord(  ci  );
 		}
 
-		return Statement new InputStatement(text, parseWord(ci));
+		return Statement new InputStatement(  text, parseWord(  ci  )  );
 	}
 
-	private Statement parseLET(CharacterIterator ci) throws {
-		if ( !ci.hasNext() ) {
-			throw new ParseException("incomplete LET!", mCurrentLine);
+	private Statement parseLET( CharacterIterator ci ) throws {
+		if (  !ci.hasNext()  ) {
+			throw new ParseException( "incomplete LET!", mCurrentLine );
 		}
 
-		string variable = parseWord(ci);
+		string variable = parseWord( ci );
 
-		skipWhitespaces(ci);
+		skipWhitespaces( ci );
 
-		if ( ci.current() != "=" ) {
+		if (  ci.current() != "="  ) {
 			throw "LET: syntax error: missing '='";
 		}
 		ci.next();
 
-		return Statement new LetStatement(variable, expression(ci));
+		return Statement new LetStatement( variable, expression( ci ) );
 	}
 
-	private Statement parseNEXT(CharacterIterator ci) throws {
-		if ( !ci.hasNext() ) {
-			throw new ParseException("incomplete NEXT!", mCurrentLine);
+	private Statement parseNEXT( CharacterIterator ci ) throws {
+		if (  !ci.hasNext()  ) {
+			throw new ParseException( "incomplete NEXT!", mCurrentLine );
 		}
 
-		string variable = parseWord(ci);
+		string variable = parseWord( ci );
 
-		return Statement new NextStatement(variable);
+		return Statement new NextStatement( variable );
 	}
 
-	private Statement parsePRINT(CharacterIterator ci) throws {
-		if ( !ci.hasNext() ) {
-			throw new ParseException("incomplete LET!", mCurrentLine);
+	private Statement parsePRINT( CharacterIterator ci ) throws {
+		if (  !ci.hasNext()  ) {
+			throw new ParseException( "incomplete LET!", mCurrentLine );
 		}
 
-		Expression exp = expression(ci);
+		Expression exp = expression( ci );
 
-		return Statement new PrintStatement(exp);
+		return Statement new PrintStatement( exp );
 	}
 
-	private Statement parseREM(CharacterIterator ci) throws {
+	private Statement parseREM( CharacterIterator ci ) throws {
 		// ignore everything on this line
-		return Statement new RemStatement(parseLine(ci));
+		return Statement new RemStatement( parseLine( ci ) );
 	}
 
-	private Statement parseRETURN(CharacterIterator ci) throws {
+	private Statement parseRETURN( CharacterIterator ci ) throws {
 		return Statement new ReturnStatement();
 	}
 
@@ -384,65 +389,65 @@ public object Parser {
 ///////////////////////////////////////////////////////////
 // Expression parsing
 
-	private Expression expression(CharacterIterator ci) throws {
-		var leftExp const = parseExpression(ci);
+	private Expression expression( CharacterIterator ci ) throws {
+		var leftExp const = parseExpression( ci );
 
-		skipWhitespaces(ci);
+		skipWhitespaces( ci );
 
-		if ( ci.hasNext() && (isComparator(ci.current()) || isOperator(ci.current())) ) {
+		if (  ci.hasNext() && ( isComparator( ci.current() ) || isOperator( ci.current() ) )  ) {
 			var op = ci.current();
 
-			if ( !ci.hasNext() ) {
+			if (  !ci.hasNext()  ) {
 				throw "invalid binary expression!";
 			}
 
 			ci.next();
 
-			return Expression new BinaryExpression(leftExp, op, expression(ci));
+			return Expression new BinaryExpression( leftExp, op, expression( ci ) );
 		}
 
 		return leftExp;
 	}
 
-	private Expression parseExpression(CharacterIterator ci) const throws {
-		string value = parseWord(ci);
+	private Expression parseExpression( CharacterIterator ci ) const throws {
+		string value = parseWord( ci );
 
-		if ( isNumber(value) ) {
-			return Expression new ConstNumberExpression(float value);
+		if (  isNumber( value )  ) {
+			return Expression new ConstNumberExpression( float value );
 		}
-		else if ( isFunction(value) ) {
-			return Expression parseFunction(value, ci);
+		else if (  isFunction( value )  ) {
+			return Expression parseFunction( value, ci );
 		}
-		else if ( isVariable(value) ) {
-			return Expression new VariableExpression(value);
+		else if (  isVariable( value )  ) {
+			return Expression new VariableExpression( value );
 		}
 		else {
-			return Expression new ConstStringExpression(value);
+			return Expression new ConstStringExpression( value );
 		}
 
 		throw "invalid value '" + value + "' provided!";
 	}
 
-	private FunctionExpression parseFunction(string name, CharacterIterator ci) const throws {
-		var funExp = new FunctionExpression(name);
+	private FunctionExpression parseFunction( string name, CharacterIterator ci ) const throws {
+		var funExp = new FunctionExpression( name );
 
-		if ( ci.current() != "(" ) {
-			throw new ParseException("'(' expected but '" + ci.current() + " ' found!");
+		if (  ci.current() != "( "  ) {
+			throw new ParseException( "'( ' expected but '" + ci.current() + " ' found!" );
 		}
 
-		while ( ci.peek() != ")" ) {
-			var exp = expression( ci );
-			funExp.mParameters.push_back(exp);
+		while (  ci.peek() != " )"  ) {
+			var exp = expression(  ci  );
+			funExp.mParameters.push_back( exp );
 
-			if ( ci.peek() == "," ) {
+			if (  ci.peek() == ","  ) {
 				continue;
 			}
 
 			break;
 		}
 
-		if ( ci.current() != ")" ) {
-			throw new ParseException("')' expected but '" + ci.current() + " ' found!");
+		if (  ci.current() != " )"  ) {
+			throw new ParseException( "' )' expected but '" + ci.current() + " ' found!" );
 		}
 
 		return funExp;
@@ -452,26 +457,26 @@ public object Parser {
 // Expression parsing
 ///////////////////////////////////////////////////////////
 
-	private bool isCharacter(string value) const {
-		return CHARS.Contains(value);
+	private bool isCharacter( string value ) const {
+		return CHARS.Contains( value );
 	}
 
-	private bool isComparator(string value) const {
-		return COMPARECHARS.Contains(value);
+	private bool isComparator( string value ) const {
+		return COMPARECHARS.Contains( value );
 	}
 
-	private bool isFunction(string value) const {
-		return FUNCTIONS.contains(value);
+	private bool isFunction( string value ) const {
+		return FUNCTIONS.contains( value );
 	}
 
-	private bool isNumber(string value) const {
-		if ( !value ) {
+	private bool isNumber( string value ) const {
+		if (  !value  ) {
 			return false;
 		}
 
-		var ci = new CharacterIterator(value);
-		while ( ci.hasNext() ) {
-			if ( !NUMBERS.Contains(ci.next()) ) {
+		var ci = new CharacterIterator( value );
+		while (  ci.hasNext()  ) {
+			if (  !NUMBERS.Contains( ci.next() )  ) {
 				return false;
 			}
 		}
@@ -479,40 +484,40 @@ public object Parser {
 		return true;
 	}
 
-	private bool isOperator(string value) const {
-		return OPERATORCHARS.Contains(value);
+	private bool isOperator( string value ) const {
+		return OPERATORCHARS.Contains( value );
 	}
 
-	private bool isVariable(string value) const {
-		if ( !value ) {
+	private bool isVariable( string value ) const {
+		if (  !value  ) {
 			return false;
 		}
 
-		return mVariables.contains(value);
+		return mVariables.contains( value );
 	}
 
-	private string parseLine(CharacterIterator ci) throws {
+	private string parseLine( CharacterIterator ci ) throws {
 		string line;
 
-		while ( ci.hasNext() ) {
+		while (  ci.hasNext()  ) {
 			line += ci.next();
 		}
 
 		return line;
 	}
 
-	private string parseWord(CharacterIterator ci) const throws {
+	private string parseWord( CharacterIterator ci ) const throws {
 		bool isString;
 		string word;
 
-		while ( ci.hasNext() ) {
+		while (  ci.hasNext()  ) {
 			string c = ci.next();
 
-			if ( !isString && DELIMITERCHARS.Contains(c) ) {
+			if (  !isString && DELIMITERCHARS.Contains( c )  ) {
 				break;
 			}
 
-			if ( c == "\"" ) {
+			if (  c == "\""  ) {
 				isString = !isString;
 				continue;
 			}
@@ -523,8 +528,8 @@ public object Parser {
 		return word;
 	}
 
-	private void skipWhitespaces(CharacterIterator ci) throws {
-		while ( ci.hasNext() && WHITESPACES.Contains(ci.current()) ) {
+	private void skipWhitespaces( CharacterIterator ci ) throws {
+		while (  ci.hasNext() && WHITESPACES.Contains( ci.current() )  ) {
 			ci.next();
 		}
 	}

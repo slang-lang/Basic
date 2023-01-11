@@ -27,8 +27,8 @@ public object Statement extends Node {
 	public Statement mFollowingStatement;
 	public StatementType mStatementType const;
 
-	public void Constructor(StatementType statementType) {
-		base.Constructor(NodeType.StatementNode);
+	public void Constructor( StatementType statementType ) {
+		base.Constructor( NodeType.StatementNode );
 
 		mStatementType = statementType;
 	}
@@ -38,11 +38,11 @@ public object Statement extends Node {
 	public abstract string toString() const;
 
 	protected string following() const {
-		return mFollowingStatement ? (" : " + mFollowingStatement.toString()) : "";
+		return mFollowingStatement ? ( " : " + mFollowingStatement.toString() ) : "";
 	}
 
 	protected string prettyFollowing() const {
-		return mFollowingStatement ? (" : " + mFollowingStatement.toPrettyString()) : "";
+		return mFollowingStatement ? ( " : " + mFollowingStatement.toPrettyString() ) : "";
 	}
 }
 
@@ -51,25 +51,25 @@ public object DimStatement extends Statement {
 	public Expression mExpression const;
 	public string mVariable const;
 
-	public void Constructor(string variable, Expression exp) {
-		base.Constructor(StatementType.DimStatement);
+	public void Constructor( string variable, Expression exp ) {
+		base.Constructor( StatementType.DimStatement );
 
 		mExpression = exp;
 		mVariable = variable;
 	}
 
 	public string toPrettyString() const {
-		return "DIM " + mVariable + mExpression ? ( " = " + mExpression.toPrettyString()) : "" + prettyFollowing();
+		return "DIM " + mVariable + mExpression ? (  " = " + mExpression.toPrettyString() ) : "" + prettyFollowing();
 	}
 
 	public string toString() const {
-		return "DIM " + mVariable + mExpression ? (" = " + mExpression.toString()) : "" + following();
+		return "DIM " + mVariable + mExpression ? ( " = " + mExpression.toString() ) : "" + following();
 	}
 }
 
 public object EndStatement extends Statement {
 	public void Constructor() {
-		base.Constructor(StatementType.EndStatement);
+		base.Constructor( StatementType.EndStatement );
 	}
 
 	public string toPrettyString() const {
@@ -87,9 +87,9 @@ public object ForStatement extends Statement {
 	public Expression mStepExpression const;
 	public Expression mTargetExpression const;
 
-	public void Constructor(VariableExpression variable, Expression startExpression,
-							Expression targetExpression, Expression stepExpression) {
-		base.Constructor(StatementType.ForStatement);
+	public void Constructor( VariableExpression variable, Expression startExpression,
+							Expression targetExpression, Expression stepExpression ) {
+		base.Constructor( StatementType.ForStatement );
 
 		mLoopVariable = variable;
 		mStartExpression = startExpression;
@@ -100,21 +100,21 @@ public object ForStatement extends Statement {
 	public string toPrettyString() const {
 		return "FOR " + mLoopVariable.toPrettyString() + " = " + mStartExpression.toPrettyString() +
 			   " TO " + mTargetExpression.toPrettyString() +
-			   " STEP " + (mStepExpression ? mStepExpression.toPrettyString() : "1") + prettyFollowing();
+			   " STEP " + ( mStepExpression ? mStepExpression.toPrettyString() : "1" ) + prettyFollowing();
 	}
 
 	public string toString() const {
 		return "FOR " + mLoopVariable.toString() + " = " + mStartExpression.toString() +
 		       " TO " + mTargetExpression.toString() +
-			   " STEP " + (mStepExpression ? mStepExpression.toString() : "1") + following();
+			   " STEP " + ( mStepExpression ? mStepExpression.toString() : "1" ) + following();
 	}
 }
 
 public object GoSubStatement extends Statement {
 	public int mLine const;
 
-	public void Constructor(int line) {
-		base.Constructor(StatementType.GoSubStatement);
+	public void Constructor( int line ) {
+		base.Constructor( StatementType.GoSubStatement );
 
 		mLine = line;
 	}
@@ -130,29 +130,46 @@ public object GoSubStatement extends Statement {
 
 public object GotoStatement extends Statement {
 	public int mLine const;
+	public string Label const;
 
-	public void Constructor(int line) {
-		base.Constructor(StatementType.GotoStatement);
+	public void Constructor(  string label  ) {
+		base.Constructor(  StatementType.GotoStatement  );
+
+		Label = label;
+	}
+
+	public void Constructor(  int line  ) {
+		base.Constructor(  StatementType.GotoStatement  );
 
 		mLine = line;
 	}
 
 	public string toPrettyString() const {
-		return "GOTO " + mLine + prettyFollowing();
+		if (  Label  ) {
+			return "GOTO " + Label;
+		}
+
+		return "GOTO " + mLine;
 	}
 
 	public string toString() const {
-		return "GOTO " + mLine + following();
+		if (  Label  ) {
+			return "GOTO " + Label;
+		}
+
+		return "GOTO " + mLine;
 	}
 }
 
 public object IfStatement extends Statement {
+	public Statement mElseBlock const;
 	public Expression mExpression const;
 	public Statement mThenBlock const;
 
-	public void Constructor(Expression exp const, Statement thenBlock const) {
-		base.Constructor(StatementType.IfStatement);
+	public void Constructor(  Expression exp const, Statement thenBlock const /*, Statement elseBlock const*/  ) {
+		base.Constructor(  StatementType.IfStatement  );
 
+		//mElseBlock = elseBlock;
 		mExpression = exp;
 		mThenBlock = thenBlock;
 	}
@@ -170,19 +187,19 @@ public object InputStatement extends Statement {
 	public string mText const;
 	public string mVariable const;
 
-	public void Constructor(string text, string variable) {
-		base.Constructor(StatementType.InputStatement);
+	public void Constructor( string text, string variable ) {
+		base.Constructor( StatementType.InputStatement );
 
 		mText = text;
 		mVariable = variable;
 	}
 
 	public string toPrettyString() const {
-		return "INPUT \"" + (mText ? (mText + "\" ") : "\"") + mVariable + prettyFollowing();
+		return "INPUT \"" + ( mText ? ( mText + "\" " ) : "\"" ) + mVariable + prettyFollowing();
 	}
 
 	public string toString() const {
-		return "INPUT \"" + (mText ? (mText + "\" ") : "\"") + mVariable + following();
+		return "INPUT \"" + ( mText ? ( mText + "\" " ) : "\"" ) + mVariable + following();
 	}
 }
 
@@ -190,8 +207,8 @@ public object LetStatement extends Statement {
 	public Expression mExpression const;
 	public string mVariable const;
 
-	public void Constructor(string variable, Expression exp const) {
-		base.Constructor(StatementType.LetStatement);
+	public void Constructor( string variable, Expression exp const ) {
+		base.Constructor( StatementType.LetStatement );
 
 		mExpression = exp;
 		mVariable = variable;
@@ -210,26 +227,26 @@ public object MethodStatement extends Statement {
 	public string mMethodName const;
 	public List<String> mParameters;
 
-	public void Constructor(string method) {
-		base.Constructor(StatementType.MethodStatement);
+	public void Constructor( string method ) {
+		base.Constructor( StatementType.MethodStatement );
 
 		mMethodName = method;
 	}
 
 	public string toPrettyString() const {
-		string result = mMethodName + "(";
-		foreach ( String p : mParameters )
+		string result = mMethodName + "( ";
+		foreach (  String p : mParameters  )
 			result += string p + " ";
- 		result += ")";
+ 		result += " )";
 
 		return result + prettyFollowing();
 	}
 
 	public string toString() const {
-		string result = mMethodName + "(";
-		foreach ( string p : mParameters )
+		string result = mMethodName + "( ";
+		foreach (  string p : mParameters  )
 			result += p + " ";
- 		result += ")";
+ 		result += " )";
 
 		return result + following();
 	}
@@ -238,8 +255,8 @@ public object MethodStatement extends Statement {
 public object NextStatement extends Statement {
 	public string mLoopVariable;
 
-	public void Constructor(string loopVariable) {
-		base.Constructor(StatementType.NextStatement);
+	public void Constructor( string loopVariable ) {
+		base.Constructor( StatementType.NextStatement );
 
 		mLoopVariable = loopVariable;
 	}
@@ -257,8 +274,8 @@ public object OnStatement extends Statement {
 	public Expression mExpression const;
 	public List<int> mLines;
 
-	public void Constructor(Expression exp) {
-		base.Constructor(StatementType.OnStatement);
+	public void Constructor( Expression exp ) {
+		base.Constructor( StatementType.OnStatement );
 
 		mExpression = exp;
 		mLines = new List<int>();
@@ -276,26 +293,26 @@ public object OnStatement extends Statement {
 public object PrintStatement extends Statement {
 	public Expression mExpression const;
 
-	public void Constructor(Expression exp) {
-		base.Constructor(StatementType.PrintStatement);
+	public void Constructor( Expression exp ) {
+		base.Constructor( StatementType.PrintStatement );
 
 		mExpression = exp;
 	}
 
 	public string toPrettyString() const {
-		return "PRINT " + (mExpression ? mExpression.toPrettyString() : "") + prettyFollowing();
+		return "PRINT " + ( mExpression ? mExpression.toPrettyString() : "" ) + prettyFollowing();
 	}
 
 	public string toString() const {
-		return "PRINT " + (mExpression ? mExpression.toString() : "") + following();
+		return "PRINT " + ( mExpression ? mExpression.toString() : "" ) + following();
 	}
 }
 
 public object RemStatement extends Statement {
 	public string mComment const;
 
-	public void Constructor(string text = "") {
-		base.Constructor(StatementType.RemStatement);
+	public void Constructor( string text = "" ) {
+		base.Constructor( StatementType.RemStatement );
 
 		mComment = text;
 	}
@@ -311,7 +328,7 @@ public object RemStatement extends Statement {
 
 public object ReturnStatement extends Statement {
 	public void Constructor() {
-		base.Constructor(StatementType.ReturnStatement);
+		base.Constructor( StatementType.ReturnStatement );
 	}
 
 	public string toPrettyString() const {
