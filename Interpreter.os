@@ -302,8 +302,6 @@ public object Interpreter {
 	}
 
 	private int processEND( EndStatement stmt ) const throws {
-		print( "END" );
-
 		if ( stmt.mFollowingStatement ) {
 			throw "END does not support following statements!";
 		}
@@ -382,7 +380,7 @@ public object Interpreter {
 			throw new Exception( "Unknown variable '" + stmt.mVariable + "' referenced!" );
 		}
 
-		String obj = mVariables.get( stmt.mVariable );
+		var obj = mVariables.get( stmt.mVariable );
 		obj = cin();
 
 		return stmt.mFollowingStatement ? process( stmt.mFollowingStatement ) : 0;
@@ -395,7 +393,7 @@ public object Interpreter {
 			throw new Exception( "Unknown variable '" + stmt.mVariable + "' referenced!" );
 		}
 
-		String obj = mVariables.get( stmt.mVariable );
+		var obj = mVariables.get( stmt.mVariable );
 		if ( !obj ) {
 			throw "invalid variable '" + stmt.mVariable + "' referenced!";
 		}
